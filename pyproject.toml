@@ -1,0 +1,60 @@
+[project]
+name = "customer-outreach-agent"
+version = "0.1.0"
+description = "Solo Founder OS agent #10 — cold-email drafter for paying customers (not investors). Personalized on a verbatim signal; HITL queue."
+authors = [{ name = "Alex Ji", email = "alex@vibexforge.com" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "anthropic>=0.40",
+    "solo-founder-os>=0.10.0",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+]
+keywords = ["sales", "outreach", "cold-email", "customer", "hitl", "indie", "claude"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+dev = ["pytest>=8.0", "mcp>=1.0"]
+
+[project.scripts]
+customer-outreach-agent = "customer_outreach_agent.__main__:main"
+customer-outreach-mcp = "customer_outreach_agent.mcp_server:main"
+
+[project.urls]
+Repository = "https://github.com/alex-jb/customer-outreach-agent"
+Issues = "https://github.com/alex-jb/customer-outreach-agent/issues"
+Homepage = "https://github.com/alex-jb/customer-outreach-agent"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["customer_outreach_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E501", "E731", "E402", "E702", "E741",
+]
