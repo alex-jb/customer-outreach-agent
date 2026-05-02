@@ -1,6 +1,6 @@
 [project]
 name = "customer-outreach-agent"
-version = "0.1.0"
+version = "0.2.0"
 description = "Solo Founder OS agent #10 — cold-email drafter for paying customers (not investors). Personalized on a verbatim signal; HITL queue."
 authors = [{ name = "Alex Ji", email = "alex@vibexforge.com" }]
 license = { text = "MIT" }

@@ -29,6 +29,23 @@ USAGE_LOG_PATH = (pathlib.Path.home()
 DEFAULT_MODEL = DEFAULT_HAIKU_MODEL
 
 
+def _log_reflection(outcome: str, signal: str) -> None:
+    """L1 reflexion sink — best-effort, never raises into the draft path.
+    Skips Haiku reflection in this hot path; the supervisor can backfill
+    reflections offline if it cares to."""
+    try:
+        from solo_founder_os import log_outcome
+        log_outcome(
+            ".customer-outreach-agent",
+            "draft_customer_outreach_email",
+            outcome,
+            signal,
+            skip_reflection=True,
+        )
+    except Exception:
+        pass
+
+
 SYSTEM_PROMPT = """You are an indie founder writing one personalized cold email \
 to a potential customer (not an investor).
 
@@ -149,6 +166,7 @@ def draft_email(
         messages=[{"role": "user", "content": user_prompt}],
     )
     if err is not None:
+        _log_reflection("PARTIAL", f"draft Claude error: {str(err)[:200]}")
         d = _template_fallback(lead, proj)
         d.raw_response = f"(LLM error, fell back to template: {err})"
         return d
@@ -156,6 +174,9 @@ def draft_email(
     subject = (obj.get("subject") or "").strip()
     body = (obj.get("body") or "").strip()
     if not subject or not body:
+        _log_reflection("PARTIAL",
+                          "Claude returned empty subject or body — "
+                          "fell back to template")
         d = _template_fallback(lead, proj)
         d.raw_response = "(LLM returned empty subject/body, fell back)"
         return d
