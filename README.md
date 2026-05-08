@@ -1,101 +1,48 @@
-# customer-outreach-agent
+# customer-outreach-agent (DEPRECATED — merged into vc-outreach-agent v0.9.0)
 
-> Solo Founder OS agent #10 — cold-email drafter for **paying customers** (not investors). Personalized on a verbatim signal; HITL queue.
+> ⚠️ **This agent has been merged into [vc-outreach-agent](https://github.com/alex-jb/vc-outreach-agent) as `--mode customer`.**
+>
+> Date of merge: 2026-05-08 (in vc-outreach-agent commit `6a06103`, release `v0.9.0`).
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](#)
-
-Built by [Alex Ji](https://github.com/alex-jb) — closes the 6th of 7 canonical one-person-company stack layers (sales / customer acquisition).
-
-## Why this isn't vc-outreach-agent
-
-`vc-outreach-agent` writes to investors. The ASK is "take a meeting." The OPEN is a thesis hint.
-
-`customer-outreach-agent` writes to potential paying users. The ASK is "try the product, free, no meeting." The OPEN is a verbatim signal — what they actually said about a problem your product solves.
-
-Different audience, different shape. Different system prompt, different schema, different banned phrases.
-
-## What it refuses to do
-
-If a lead row has no `signal_text`, this agent skips it. Generic outbound email blasts to cold lists is the wrong tool for this agent. Bring observable signals (their tweets, their PH comments, their repo stars) or this agent does nothing.
-
-## Install
+## How to migrate (1 line)
 
 ```bash
-pip install customer-outreach-agent
-# or
-git clone https://github.com/alex-jb/customer-outreach-agent
-cd customer-outreach-agent && pip install -e .
+pip uninstall customer-outreach-agent
+pip install vc-outreach-agent
 ```
 
-## Usage
-
-### 1. Project file
-
-```yaml
-# orallexa.yml (or .json)
-name: VibeXForge
-one_liner: Forge AI projects into 16-bit pixel heroes that evolve from Seed to Myth.
-differentiator: Real traction drives stage advancement, not algorithm magic
-free_offer: Free to forge first project — 30 seconds, no signup gate
-paid_tier: Hero Card skins from $3 (cosmetic only)
-proof_url: https://www.vibexforge.com/project/breakout-example
-founder_name: Alex Ji
-founder_email: alex@vibexforge.com
-```
-
-### 2. Leads CSV
-
-```csv
-email,name,handle,signal_source,signal_text,notes
-alice@example.com,Alice,@alice_dev,x.com/alice_dev/status/123,"tweeted: 'tired of launch boards that disappear after day-1'",
-bob@example.com,Bob,@bob,producthunt.com/posts/x/comments,"commented: 'wish there was a launch board where projects keep evolving'",
-```
-
-### 3. Draft
+The `customer-outreach-agent` console_script keeps working — it's now a back-compat alias provided by `vc-outreach-agent`. Existing shell history, cron jobs, and scripts that call:
 
 ```bash
-customer-outreach-agent draft \
-  --project orallexa.yml \
-  --leads leads.csv
-
-# drafting 12 email(s) for VibeXForge
-#   ✓ alice@example.com → 2026-05-02-alice.md
-#   ✓ bob@example.com → 2026-05-02-bob.md
-#   ⚠️  skipping cold@example.com: no signal_text
+customer-outreach-agent draft --project p.json --leads leads.csv
+customer-outreach-agent queue
 ```
 
-Each draft lands in `~/.customer-outreach-agent/queue/pending/`. Review in Obsidian, move to `approved/` to send manually (or wire SMTP per vc-outreach pattern in v0.2).
+continue to work unchanged. Internally the `draft` subcommand is mapped to `customer-draft` on the merged binary.
 
-## MCP server
+Existing queue files at `~/.customer-outreach-agent/queue/` are also unchanged — paths preserved. Existing usage log at `~/.customer-outreach-agent/usage.jsonl` is still where customer-mode drafts write, so cost-audit-agent attribution keeps working.
 
-```bash
-pip install 'customer-outreach-agent[mcp]'
-```
+## Why merge?
 
-```json
-{
-  "mcpServers": {
-    "customer-outreach": {
-      "command": "customer-outreach-mcp",
-      "env": { "ANTHROPIC_API_KEY": "..." }
-    }
-  }
-}
-```
+The audit on 2026-05-08 found that this repo was structurally a fork of `vc-outreach-agent`:
+- ~120 LOC of real semantic delta (different prompt, different recipient validation, Haiku default vs Sonnet, `skip_reflection=True` flag).
+- ~50 LOC of pure rename (`Investor` → `Lead`, `vc_*` → `customer_*`).
+- 5 of 6 vc-outreach test files (`test_enricher`, `test_sender`, `test_queue`, `test_mcp_server`, `test_vibex_traction`) cover surface area this repo never had — so customer mode was missing free SMTP sender + VibeX traction + CDA enricher hooks that VC mode shipped.
 
-Tools: `draft_outreach_email(...)` · `list_pending()` · `list_approved()`
+Merging gives customer mode all of those for free, drops Solo Founder OS stack from 11 → 10 agents, and removes 11 separate README footers / release pipelines for what is structurally one cold-email tool with two recipient personas.
 
-The MCP `draft_outreach_email` tool *enforces* the signal_text requirement — it refuses to draft without one, even from Claude Desktop.
+See [vc-outreach-agent CHANGELOG v0.9.0](https://github.com/alex-jb/vc-outreach-agent/blob/main/CHANGELOG.md) for the full migration note + skipped plan items.
 
-## Roadmap
+## Reversal cost
 
-- [x] **v0.1** — Claude drafter + heuristic template fallback · HITL queue · MCP server · 6 tests
-- [ ] **v0.2** — SMTP sender for approved drafts (mirroring vc-outreach pattern)
-- [ ] **v0.3** — Auto-source signals from CDA digests + funnel-analytics top-stage VibeX users
-- [ ] **v0.4** — A/B variant bandit on subject lines (lift `solo_founder_os.bandit`)
-- [ ] **v0.5** — Reply parser → CRM-lite (open rate / reply rate / churn rate per signal source)
+If customer outreach diverges enough in 6 months to justify its own surface (e.g. Stripe-integrated upsell flow that VC doesn't share), re-splitting takes ~2 hours — same magnitude as the merge. Low lock-in.
 
-## License
+## Original v0.2.0 README
 
-MIT.
+Preserved at [`README.v0.2.0-archived.md`](./README.v0.2.0-archived.md) for posterity.
+
+---
+
+## ⏳ Repo will be archived
+
+This repo is staying public + writable for a brief grace period to let any cron / installed scripts confirm the alias path works. Plan: `gh repo archive alex-jb/customer-outreach-agent` after 1 week of clean operation. Re-open by un-archiving if any path breaks.
